@@ -66,5 +66,50 @@ module Tiramizoo
           raise UnknownError
       end
     end
+
+    def calculate_distance(origin, destination)
+      response = connection.get({
+        :path          => "/api/v1/distance",
+        :query         => {
+          :origin       => origin.values.join(","),
+          :destination  => destination.values.join(",")
+        },
+        :headers       => {"Api-Token" => api_token},
+        :idempotent    => true,
+        :read_timeout  => 1,
+        :write_timeout => 1
+      })
+
+      case response.status
+        when 200
+          JSON.parse(response.body)["distance"]
+        when 401
+          raise InvalidApiToken
+      end
+    end
+
+    def geocode(address_line, postal_code, city, country_code)
+      response = connection.get({
+        :path          => "/api/v1/geocode",
+        :query         => {
+          :address_line => address_line,
+          :postal_code  => postal_code,
+          :country_code => country_code,
+          :city         => city
+        },
+        :headers       => {"Api-Token" => api_token},
+        :idempotent    => true,
+        :read_timeout  => 1,
+        :write_timeout => 1
+      })
+
+      case response.status
+        when 200
+          JSON.parse(response.body)
+        when 401
+          raise InvalidApiToken
+      end
+    end
+
   end
 end
