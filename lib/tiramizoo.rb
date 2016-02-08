@@ -17,9 +17,6 @@ module Tiramizoo
     end
 
     def create_order(sender = {}, recipient = {}, packages = [], time_window = {}, options = {})
-      sender    = sender.slice("address_line", "postal_code", "country_code", "name", "phone_number", "information")
-      recipient = recipient.slice("address_line", "postal_code", "country_code", "name", "phone_number", "information")
-
       body = {
         "pickup" => sender.merge({
           "after" => time_window["pickup_after"]
@@ -29,7 +26,7 @@ module Tiramizoo
           "before" => time_window["delivery_before"]
         }),
         "packages" => packages.map do |p|
-          p.slice("width", "height", "length", "description", "quantity")
+          p.slice("width", "height", "length", "weight", "description", "quantity")
         end
       }
 
@@ -57,7 +54,7 @@ module Tiramizoo
         when 401
           raise InvalidApiToken
         when 422
-          raise UnprocessableEntity.new(JSON.parse(response.body))
+          raise UnprocessableEntity.new(response.body.force_encoding("utf-8"))
         when 500
           raise ServerError
         when 503
