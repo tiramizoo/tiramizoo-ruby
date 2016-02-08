@@ -20,24 +20,35 @@ module Tiramizoo
       sender    = sender.slice("address_line", "postal_code", "country_code", "name", "phone_number", "information")
       recipient = recipient.slice("address_line", "postal_code", "country_code", "name", "phone_number", "information")
 
+      body = {
+        "pickup" => sender.merge({
+          "after" => time_window["pickup_after"]
+        }),
+        "delivery" => recipient.merge({
+          "after"  => time_window["delivery_after"],
+          "before" => time_window["delivery_before"]
+        }),
+        "packages" => packages.map do |p|
+          p.slice("width", "height", "length", "description", "quantity")
+        end
+      }
+
+      if options["external_id"].present?
+        body["external_id"] = options["external_id"]
+      end
+
+      if options["web_hook_url"].present?
+        body["web_hook_url"] = options["web_hook_url"]
+      end
+
+      if options["recipient_email"].present?
+        body["recipient_email"] => options["recipient_email"]
+      end
+
       response = connection.post({
         :path    => "/api/v1/orders",
         :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"},
-        :body => {
-          "pickup" => sender.merge({
-            "after" => time_window["pickup_after"]
-          }),
-          "delivery" => recipient.merge({
-            "after"  => time_window["delivery_after"],
-            "before" => time_window["delivery_before"]
-          }),
-          "packages"        => packages.map do |p|
-            p.slice("width", "height", "length", "description", "quantity")
-          end,
-          "external_id"     => options["external_id"],
-          "web_hook_url"    => options["web_hook_url"],
-          "recipient_email" => options["recipient_email"]
-        }.to_json
+        :body    => body.to_json
       })
 
       case response.status
