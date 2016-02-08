@@ -42,7 +42,7 @@ module Tiramizoo
       end
 
       if options["recipient_email"].present?
-        body["recipient_email"] => options["recipient_email"]
+        body["recipient_email"] = options["recipient_email"]
       end
 
       response = connection.post({
