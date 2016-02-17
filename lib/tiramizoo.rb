@@ -18,13 +18,8 @@ module Tiramizoo
 
     def create_order(sender = {}, recipient = {}, packages = [], time_window = {}, options = {})
       body = {
-        "pickup" => sender.merge({
-          "after" => time_window["pickup_after"]
-        }),
-        "delivery" => recipient.merge({
-          "after"  => time_window["delivery_after"],
-          "before" => time_window["delivery_before"]
-        }),
+        "pickup"   => sender,
+        "delivery" => recipient,
         "packages" => packages.map do |p|
           p.slice("width", "height", "length", "weight", "description", "quantity")
         end
@@ -32,6 +27,22 @@ module Tiramizoo
 
       if options["delivery_type"].present?
         body["delivery_type"] = options["delivery_type"]
+      end
+
+      if time_window["pickup_after"].present?
+        body["pickup"]["after"] = time_window["pickup_after"]
+      end
+
+      if time_window["pickup_before"].present?
+        body["pickup"]["before"] = time_window["pickup_before"]
+      end
+
+      if time_window["delivery_after"].present?
+        body["delivery"]["after"] = time_window["delivery_after"]
+      end
+
+      if time_window["delivery_before"].present?
+        body["delivery"]["before"] = time_window["delivery_before"]
       end
 
       if options["external_id"].present?
