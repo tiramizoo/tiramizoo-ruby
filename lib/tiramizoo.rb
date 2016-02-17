@@ -30,6 +30,10 @@ module Tiramizoo
         end
       }
 
+      if options["delivery_type"].present?
+        body["delivery_type"] = options["delivery_type"]
+      end
+
       if options["external_id"].present?
         body["external_id"] = options["external_id"]
       end
