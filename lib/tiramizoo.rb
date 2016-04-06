@@ -16,6 +16,26 @@ module Tiramizoo
       @connection = Excon.new(ENV['TIRAMIZOO_API_HOST'], debug: Rails.env.development?)
     end
 
+    def configuration
+      response = connection.get({
+        :path    => "/api/v1/configuration",
+        :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"}
+      })
+
+      case response.status
+        when 200
+          JSON.parse(response.body)
+        when 401
+          raise InvalidApiToken
+        when 500
+          raise ServerError
+        when 503
+          raise ServerIsUndergoingMaintenance
+        else
+          raise UnknownError
+      end
+    end
+
     def create_order(sender = {}, recipient = {}, packages = [], time_window = {}, options = {})
       body = {
         "pickup"   => sender,
