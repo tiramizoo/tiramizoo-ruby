@@ -5,6 +5,7 @@ module Tiramizoo
   class Api
     class InvalidApiToken               < StandardError; end
     class ServerError                   < StandardError; end
+    class NotFound                      < StandardError; end
     class UnprocessableEntity           < StandardError; end
     class ServerIsUndergoingMaintenance < StandardError; end
     class UnknownError                  < StandardError; end
@@ -108,6 +109,36 @@ module Tiramizoo
           JSON.parse(response.body)
         when 401
           raise InvalidApiToken
+        when 422
+          raise UnprocessableEntity.new(response.body.force_encoding("utf-8"))
+        when 500
+          raise ServerError
+        when 503
+          raise ServerIsUndergoingMaintenance
+        else
+          raise UnknownError
+      end
+    end
+
+    def cancel_order(order_identifier)
+      body = {
+        "state"               => "cancelled",
+        "cancellation_reason" => "user"
+      }
+
+      response = connection.put({
+        :path    => "/api/v1/orders/#{order_identifier}",
+        :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"},
+        :body    => body.to_json
+      })
+
+      case response.status
+        when 200
+          JSON.parse(response.body)
+        when 401
+          raise InvalidApiToken
+        when 404
+          raise NotFound
         when 422
           raise UnprocessableEntity.new(response.body.force_encoding("utf-8"))
         when 500
