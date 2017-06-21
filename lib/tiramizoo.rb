@@ -98,6 +98,10 @@ module Tiramizoo
         body["recipient_email"] = options["recipient_email"]
       end
 
+      if options["description"].present?
+        body["description"] = options["description"]
+      end
+
       response = connection.post({
         :path    => "/api/v1/orders",
         :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"},
