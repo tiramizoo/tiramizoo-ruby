@@ -86,6 +86,10 @@ module Tiramizoo
         body["delivery"]["before"] = time_window["delivery_before"]
       end
 
+      if options["premium_delivery_before"].present?
+        body["premium_delivery_before"] = options["premium_delivery_before"]
+      end
+
       if options["external_id"].present?
         body["external_id"] = options["external_id"]
       end
