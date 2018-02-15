@@ -3,12 +3,24 @@ require 'excon'
 
 module Tiramizoo
   class Api
-    class InvalidApiToken               < StandardError; end
-    class ServerError                   < StandardError; end
-    class NotFound                      < StandardError; end
-    class UnprocessableEntity           < StandardError; end
-    class ServerIsUndergoingMaintenance < StandardError; end
-    class UnknownError                  < StandardError; end
+    class InvalidApiToken                          < StandardError; end
+    class ServerError                              < StandardError; end
+    class NotFound                                 < StandardError; end
+    class UnprocessableEntity                      < StandardError; end
+    class ServerIsUndergoingMaintenance            < StandardError; end
+    class UnknownError                             < StandardError; end
+    class PickupAddressIsTheSameAsDeliveryAddress  < StandardError; end
+    class PickupNameCantBeBlank                    < StandardError; end
+    class DeliveryAfterCantBeBlank                 < StandardError; end
+    class PickupPostalCodeIsInvalid                < StandardError; end
+    class DeliveryPostalCodeIsInvalid              < StandardError; end
+    class OutsideBusinessHours                     < StandardError; end
+    class DeliveryTypeIsInvalid                    < StandardError; end
+    class StateIsInvalid                           < StandardError; end
+    class DeliveryBeforeIsTooFarInFutureMaxIs7Days < StandardError; end
+    class DeliveryAfterCantBeInThePast             < StandardError; end
+    class YouCantCancelAnymorePleaseContactTiramizooCallCenter < StandardError; end
+    class PackagesAtLeastOnePackageDoesNotFitIntoSMLXlXxlZmhZmhiiPackageSizes < StandardError; end
 
     attr_reader :connection, :api_token
 
@@ -118,7 +130,7 @@ module Tiramizoo
         when 401
           raise InvalidApiToken
         when 422
-          raise UnprocessableEntity.new(response.body.force_encoding("utf-8"))
+          unprocessable_entity_error(response)
         when 500
           raise ServerError
         when 503
@@ -148,7 +160,7 @@ module Tiramizoo
         when 404
           raise NotFound
         when 422
-          raise UnprocessableEntity.new(response.body.force_encoding("utf-8"))
+          unprocessable_entity_error(response)
         when 500
           raise ServerError
         when 503
@@ -202,5 +214,13 @@ module Tiramizoo
       end
     end
 
+    def unprocessable_entity_error(response)
+      begin
+        error_name = response.body.errors.first["message"].split.map{|x| x.gsub(/\W+/, '').capitalize}.compact.join("")
+      rescue
+        raise UnprocessableEntity.new(response.body.force_encoding("utf-8"))
+      end
+      raise error_name.constantize.new(response.body.force_encoding("utf-8"))
+    end
   end
 end
