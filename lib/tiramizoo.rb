@@ -69,7 +69,7 @@ module Tiramizoo
         "pickup"   => sender,
         "delivery" => recipient,
         "packages" => packages.map do |p|
-          p.slice("width", "height", "length", "weight", "description", "quantity")
+          p.slice("width", "height", "length", "weight", "description", "quantity", "category", "external_id", "non_rotatable")
         end
       }
 
