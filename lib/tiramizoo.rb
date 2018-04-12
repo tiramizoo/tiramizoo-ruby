@@ -1,4 +1,5 @@
-require "tiramizoo/version"
+require 'tiramizoo/version'
+require 'logger'
 require 'excon'
 
 module Tiramizoo
@@ -17,6 +18,10 @@ module Tiramizoo
       @connection = Excon.new(ENV['TIRAMIZOO_API_HOST'], debug: Rails.env.development?)
     end
 
+    def logger
+      @logger ||= Logger.new(STDOUT)
+    end
+
     def configuration
       response = connection.get({
         :path    => "/api/v1/configuration",
@@ -33,7 +38,8 @@ module Tiramizoo
         when 503
           raise ServerIsUndergoingMaintenance
         else
-          raise UnknownError
+          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
+          raise UnknownError.new(response.status_line)
       end
     end
 
@@ -53,7 +59,8 @@ module Tiramizoo
         when 503
           raise ServerIsUndergoingMaintenance
         else
-          raise UnknownError
+          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
+          raise UnknownError.new(response.status_line)
       end
     end
 
@@ -124,7 +131,8 @@ module Tiramizoo
         when 503
           raise ServerIsUndergoingMaintenance
         else
-          raise UnknownError
+          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
+          raise UnknownError.new(response.status_line)
       end
     end
 
@@ -154,7 +162,8 @@ module Tiramizoo
         when 503
           raise ServerIsUndergoingMaintenance
         else
-          raise UnknownError
+          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
+          raise UnknownError.new(response.status_line)
       end
     end
 
@@ -176,6 +185,9 @@ module Tiramizoo
           JSON.parse(response.body)["distance"]
         when 401
           raise InvalidApiToken
+        else
+          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
+          raise UnknownError.new(response.status_line)
       end
     end
 
@@ -199,6 +211,9 @@ module Tiramizoo
           JSON.parse(response.body)
         when 401
           raise InvalidApiToken
+        else
+          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
+          raise UnknownError.new(response.status_line)
       end
     end
 
