@@ -72,7 +72,7 @@ module Tiramizoo
           p.slice("width", "height", "length", "weight", "description", "quantity", "category", "external_id", "non_rotatable")
         end
       }
-      
+
       body["delivery_type"]      = options["delivery_type"].presence
       body["pickup"]["after"]    = time_window["pickup_after"].presence
       body["pickup"]["before"]   = time_window["pickup_before"].presence
@@ -90,11 +90,17 @@ module Tiramizoo
       body["premium_pickup"]["after"]    = options["premium_pickup_after"].presence
       body["premium_pickup"]["before"]   = options["premium_pickup_before"].presence
       body["premium_delivery"]["before"] = options["premium_delivery_before"].presence
-      
+
+      body["pickup"].compact!
+      body["delivery"].compact!
+      body["premium_pickup"].compact!
+      body["premium_delivery"].compact!
+      body.compact!
+
       response = connection.post({
         :path    => "/api/v1/orders",
         :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"},
-        :body    => body.compact.to_json
+        :body    => body.to_json
       })
 
       case response.status
