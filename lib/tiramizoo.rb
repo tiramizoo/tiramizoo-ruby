@@ -95,7 +95,7 @@ module Tiramizoo
       body["delivery"].compact!
       body["premium_pickup"].compact!
       body["premium_delivery"].compact!
-      body.compact!
+      body.delete_if { |k,v| v.empty? }
 
       response = connection.post({
         :path    => "/api/v1/orders",
