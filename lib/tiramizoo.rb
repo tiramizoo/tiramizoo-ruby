@@ -97,10 +97,12 @@ module Tiramizoo
       body["premium_delivery"].compact!
       body.delete_if { |k,v| v.empty? }
 
+      request_body = body.delete_if { |k,v| v.empty? }.to_json
+
       response = connection.post({
         :path    => "/api/v1/orders",
         :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"},
-        :body    => body.to_json
+        :body    => request_body
       })
 
       case response.status
