@@ -65,58 +65,44 @@ module Tiramizoo
     end
 
     def create_order(sender = {}, recipient = {}, packages = [], time_window = {}, options = {})
-      body = {
-        "pickup"   => sender,
-        "delivery" => recipient,
-        "packages" => packages.map do |p|
-          p.slice("width", "height", "length", "weight", "description", "quantity", "category", "external_id", "non_rotatable")
-        end
-      }
+      body = {}
 
-      if options["delivery_type"].present?
-        body["delivery_type"] = options["delivery_type"]
+      body["pickup"]             = sender
+      body["pickup"]["after"]    = time_window["pickup_after"].presence
+      body["pickup"]["before"]   = time_window["pickup_before"].presence
+      body["pickup"].compact!
+
+      body["delivery"]           = recipient
+      body["delivery"]["after"]  = time_window["delivery_after"].presence
+      body["delivery"]["before"] = time_window["delivery_before"].presence
+      body["delivery"].compact!
+
+      body["packages"] = packages.map do |p|
+        p.slice("width", "height", "length", "weight", "description", "quantity", "category", "external_id", "non_rotatable")
       end
 
-      if time_window["pickup_after"].present?
-        body["pickup"]["after"] = time_window["pickup_after"]
-      end
+      body["delivery_type"]   = options["delivery_type"].presence
+      body["external_id"]     = options["external_id"].presence
+      body["web_hook_url"]    = options["web_hook_url"].presence
+      body["recipient_email"] = options["recipient_email"].presence
+      body["description"]     = options["description"].presence
 
-      if time_window["pickup_before"].present?
-        body["pickup"]["before"] = time_window["pickup_before"]
-      end
+      # premium time window
+      body["premium_pickup"]             = {}
+      body["premium_pickup"]["after"]    = options["premium_pickup_after"].presence
+      body["premium_pickup"]["before"]   = options["premium_pickup_before"].presence
+      body["premium_pickup"].compact!
 
-      if time_window["delivery_after"].present?
-        body["delivery"]["after"] = time_window["delivery_after"]
-      end
+      body["premium_delivery"]           = {}
+      body["premium_delivery"]["before"] = options["premium_delivery_before"].presence
+      body["premium_delivery"].compact!
 
-      if time_window["delivery_before"].present?
-        body["delivery"]["before"] = time_window["delivery_before"]
-      end
-
-      if options["premium_delivery_before"].present?
-        body["premium_delivery_before"] = options["premium_delivery_before"]
-      end
-
-      if options["external_id"].present?
-        body["external_id"] = options["external_id"]
-      end
-
-      if options["web_hook_url"].present?
-        body["web_hook_url"] = options["web_hook_url"]
-      end
-
-      if options["recipient_email"].present?
-        body["recipient_email"] = options["recipient_email"]
-      end
-
-      if options["description"].present?
-        body["description"] = options["description"]
-      end
+      request_body = body.keep_if { |key, value| value.present? }.to_json
 
       response = connection.post({
         :path    => "/api/v1/orders",
         :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"},
-        :body    => body.to_json
+        :body    => request_body
       })
 
       case response.status
