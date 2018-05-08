@@ -65,39 +65,39 @@ module Tiramizoo
     end
 
     def create_order(sender = {}, recipient = {}, packages = [], time_window = {}, options = {})
-      body = {
-        "pickup"   => sender,
-        "delivery" => recipient,
-        "packages" => packages.map do |p|
-          p.slice("width", "height", "length", "weight", "description", "quantity", "category", "external_id", "non_rotatable")
-        end
-      }
+      body = {}
 
-      body["delivery_type"]      = options["delivery_type"].presence
+      body["pickup"]             = sender
       body["pickup"]["after"]    = time_window["pickup_after"].presence
       body["pickup"]["before"]   = time_window["pickup_before"].presence
+      body["pickup"].compact!
+
+      body["delivery"]           = recipient
       body["delivery"]["after"]  = time_window["delivery_after"].presence
       body["delivery"]["before"] = time_window["delivery_before"].presence
+      body["delivery"].compact!
 
+      body["packages"] = packages.map do |p|
+        p.slice("width", "height", "length", "weight", "description", "quantity", "category", "external_id", "non_rotatable")
+      end
+
+      body["delivery_type"]   = options["delivery_type"].presence
       body["external_id"]     = options["external_id"].presence
       body["web_hook_url"]    = options["web_hook_url"].presence
       body["recipient_email"] = options["recipient_email"].presence
       body["description"]     = options["description"].presence
 
       # premium time window
-      body["premium_pickup"]   = {}
-      body["premium_delivery"] = {}
+      body["premium_pickup"]             = {}
       body["premium_pickup"]["after"]    = options["premium_pickup_after"].presence
       body["premium_pickup"]["before"]   = options["premium_pickup_before"].presence
-      body["premium_delivery"]["before"] = options["premium_delivery_before"].presence
-
-      body["pickup"].compact!
-      body["delivery"].compact!
       body["premium_pickup"].compact!
-      body["premium_delivery"].compact!
-      body.delete_if { |k,v| v.empty? }
 
-      request_body = body.delete_if { |k,v| v.empty? }.to_json
+      body["premium_delivery"]           = {}
+      body["premium_delivery"]["before"] = options["premium_delivery_before"].presence
+      body["premium_delivery"].compact!
+
+      request_body = body.keep_if { |key, value| value.present? }.to_json
 
       response = connection.post({
         :path    => "/api/v1/orders",
