@@ -28,19 +28,7 @@ module Tiramizoo
         :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"}
       })
 
-      case response.status
-        when 200
-          JSON.parse(response.body)
-        when 401
-          raise InvalidApiToken
-        when 500
-          raise ServerError
-        when 503
-          raise ServerIsUndergoingMaintenance
-        else
-          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
-          raise UnknownError.new(response.status_line)
-      end
+      handle_response(response)
     end
 
     def service_areas
@@ -49,19 +37,7 @@ module Tiramizoo
         :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"}
       })
 
-      case response.status
-        when 200
-          JSON.parse(response.body)
-        when 401
-          raise InvalidApiToken
-        when 500
-          raise ServerError
-        when 503
-          raise ServerIsUndergoingMaintenance
-        else
-          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
-          raise UnknownError.new(response.status_line)
-      end
+      handle_response(response)
     end
 
     def create_order(sender = {}, recipient = {}, packages = [], time_window = {}, options = {})
@@ -105,21 +81,17 @@ module Tiramizoo
         :body    => request_body
       })
 
-      case response.status
-        when 201
-          JSON.parse(response.body)
-        when 401
-          raise InvalidApiToken
-        when 422
-          raise UnprocessableEntity.new(response.body.force_encoding("utf-8"))
-        when 500
-          raise ServerError
-        when 503
-          raise ServerIsUndergoingMaintenance
-        else
-          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
-          raise UnknownError.new(response.status_line)
-      end
+      handle_response(response)
+    end
+
+    def get_order(identifier)
+      response = connection.get({
+        :path    => "/api/v1/orders/#{identifier}",
+        :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"},
+        :body    => request_body
+      })
+
+      handle_response(response)
     end
 
     def cancel_order(order_identifier)
@@ -134,23 +106,7 @@ module Tiramizoo
         :body    => body.to_json
       })
 
-      case response.status
-        when 200
-          JSON.parse(response.body)
-        when 401
-          raise InvalidApiToken
-        when 404
-          raise NotFound
-        when 422
-          raise UnprocessableEntity.new(response.body.force_encoding("utf-8"))
-        when 500
-          raise ServerError
-        when 503
-          raise ServerIsUndergoingMaintenance
-        else
-          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
-          raise UnknownError.new(response.status_line)
-      end
+      handle_response(response)
     end
 
     def calculate_distance(origin, destination)
@@ -197,6 +153,24 @@ module Tiramizoo
           JSON.parse(response.body)
         when 401
           raise InvalidApiToken
+        else
+          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
+          raise UnknownError.new(response.status_line)
+      end
+    end
+
+    def handle_response(response)
+      case response.status
+        when 201
+          JSON.parse(response.body)
+        when 401
+          raise InvalidApiToken
+        when 422
+          raise UnprocessableEntity.new(response.body.force_encoding("utf-8"))
+        when 500
+          raise ServerError
+        when 503
+          raise ServerIsUndergoingMaintenance
         else
           logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
           raise UnknownError.new(response.status_line)
