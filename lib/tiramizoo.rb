@@ -121,15 +121,7 @@ module Tiramizoo
         :write_timeout => 1
       })
 
-      case response.status
-        when 200
-          JSON.parse(response.body)["distance"]
-        when 401
-          raise InvalidApiToken
-        else
-          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
-          raise UnknownError.new(response.status_line)
-      end
+      handle_response(response)
     end
 
     def geocode(address_line, postal_code, city, country_code)
@@ -147,20 +139,12 @@ module Tiramizoo
         :write_timeout => 1
       })
 
-      case response.status
-        when 200
-          JSON.parse(response.body)
-        when 401
-          raise InvalidApiToken
-        else
-          logger.warn("[tiramizoo-api] status: #{response.status}, body: #{response.body}")
-          raise UnknownError.new(response.status_line)
-      end
+      handle_response(response)
     end
 
     def handle_response(response)
       case response.status
-        when 201
+        when 200, 201
           JSON.parse(response.body)
         when 401
           raise InvalidApiToken
