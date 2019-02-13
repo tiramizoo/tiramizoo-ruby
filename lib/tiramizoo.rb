@@ -87,8 +87,7 @@ module Tiramizoo
     def get_order(identifier)
       response = connection.get({
         :path    => "/api/v1/orders/#{identifier}",
-        :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"},
-        :body    => request_body
+        :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"}
       })
 
       handle_response(response)
