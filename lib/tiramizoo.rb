@@ -93,6 +93,15 @@ module Tiramizoo
       handle_response(response)
     end
 
+    def get_order_by_external_id(external_id)
+      response = connection.get({
+        :path    => "/api/v1/orders/by_external_id/#{external_id}",
+        :headers => {"Api-Token" => api_token,  "Content-Type" => "application/json"}
+      })
+
+      handle_response(response)
+    end
+
     def cancel_order(order_identifier)
       body = {
         "state"               => "cancelled",
