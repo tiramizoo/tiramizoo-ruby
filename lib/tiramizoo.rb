@@ -62,6 +62,7 @@ module Tiramizoo
       body["web_hook_url"]    = options["web_hook_url"].presence
       body["recipient_email"] = options["recipient_email"].presence
       body["description"]     = options["description"].presence
+      body["requirements"]    = options["requirements"].presence
 
       # premium time window
       body["premium_pickup"]             = {}
